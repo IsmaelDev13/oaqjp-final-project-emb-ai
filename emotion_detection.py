@@ -16,7 +16,15 @@ def emotion_detector(text_to_analyse):
     try:
         response = requests.post(url, headers=headers, data=json.dumps(payload))
         response.raise_for_status()
-        return response.json()
-    
+        print("Raw API Response:", response.json())
+        response_data= response.json()
+        emotions = response_data.get('emotionPredictions', [{}])[0].get('emotion', {})
+        
+        required_emotions = ['anger', 'disgust', 'fear', 'joy', 'sadness']
+        emotion_scores = {emotion: emotions.get(emotion, 0.0) for emotion in required_emotions}
+        
+        dominant_emotion = max(emotion_scores, key=emotion_scores.get)
+        emotion_scores['dominant_emotion'] = dominant_emotion
+        return emotion_scores
     except requests.exceptions.RequestException as e:
         return {"error": str(e)}
